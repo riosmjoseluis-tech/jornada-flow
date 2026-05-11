@@ -57,18 +57,28 @@ function Index() {
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Mis jornadas</h1>
             </div>
-            <button
-              onClick={() => setAdmin(!isAdmin)}
-              className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${
-                isAdmin
-                  ? "border-success/40 bg-success/15 text-success"
-                  : "border-border/60 bg-card text-muted-foreground"
-              }`}
-              aria-label="Alternar modo admin"
-            >
-              <span className={`h-1.5 w-1.5 rounded-full ${isAdmin ? "bg-success" : "bg-muted-foreground/50"}`} />
-              {isAdmin ? "Admin" : "Usuario"}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/historial"
+                className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
+                aria-label="Ver historial"
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                Historial
+              </Link>
+              <button
+                onClick={() => setAdmin(!isAdmin)}
+                className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${
+                  isAdmin
+                    ? "border-success/40 bg-success/15 text-success"
+                    : "border-border/60 bg-card text-muted-foreground"
+                }`}
+                aria-label="Alternar modo admin"
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${isAdmin ? "bg-success" : "bg-muted-foreground/50"}`} />
+                {isAdmin ? "Admin" : "Usuario"}
+              </button>
+            </div>
           </div>
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex h-2 w-2 rounded-full bg-success" />
