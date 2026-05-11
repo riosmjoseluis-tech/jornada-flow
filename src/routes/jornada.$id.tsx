@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
+import type { Actividad, TipoGrupo } from "@/lib/jornadas-data";
 
 export const Route = createFileRoute("/jornada/$id")({
   component: JornadaDetail,
@@ -11,15 +12,31 @@ const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto"
 
 function JornadaDetail() {
   const { id } = Route.useParams();
-  const { jornadas, updateNota } = useJornadas();
+  const { jornadas, updateNota, updateJornada, isAdmin } = useJornadas();
   const navigate = useNavigate();
   const jornada = jornadas.find((j) => j.id === id);
 
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
+  const [editAdmin, setEditAdmin] = useState(false);
+
+  // admin form state
+  const [tipoGrupo, setTipoGrupo] = useState<TipoGrupo>(jornada?.tipoGrupo ?? "general");
+  const [grupos, setGrupos] = useState(jornada?.grupos ?? "general");
+  const [actividad, setActividad] = useState<Actividad>(jornada?.actividad ?? "casa en casa");
+  const [lugar, setLugar] = useState(jornada?.lugarEncuentro ?? "");
+  const [capitan, setCapitan] = useState(jornada?.capitan ?? "");
+  const [territorio, setTerritorio] = useState(jornada?.territorio ?? "");
 
   useEffect(() => {
-    if (jornada) setNota(jornada.nota);
+    if (!jornada) return;
+    setNota(jornada.nota);
+    setTipoGrupo(jornada.tipoGrupo);
+    setGrupos(jornada.grupos);
+    setActividad(jornada.actividad);
+    setLugar(jornada.lugarEncuentro);
+    setCapitan(jornada.capitan);
+    setTerritorio(jornada.territorio);
   }, [jornada?.id]);
 
   if (!jornada) {
@@ -40,14 +57,23 @@ function JornadaDetail() {
   const handleSave = () => {
     updateNota(jornada.id, nota);
     setSaved(true);
-    setTimeout(() => {
-      navigate({ to: "/" });
-    }, 600);
+    setTimeout(() => navigate({ to: "/" }), 600);
+  };
+
+  const handleSaveAdmin = () => {
+    updateJornada(jornada.id, {
+      tipoGrupo,
+      grupos: grupos.slice(0, 80),
+      actividad,
+      lugarEncuentro: lugar.slice(0, 200),
+      capitan: capitan.slice(0, 120),
+      territorio: territorio.slice(0, 2),
+    });
+    setEditAdmin(false);
   };
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-4">
           <Link
@@ -57,17 +83,25 @@ function JornadaDetail() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Jornada
             </p>
             <h1 className="truncate text-lg font-semibold">{jornada.grupo}</h1>
           </div>
+          {isAdmin && !editAdmin && (
+            <button
+              onClick={() => setEditAdmin(true)}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-3 text-xs font-semibold text-success transition active:scale-95"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Editar
+            </button>
+          )}
         </div>
       </header>
 
       <main className="mx-auto max-w-md px-5 pt-6">
-        {/* Hero card */}
+        {/* Hero */}
         <div className="rounded-3xl border border-border/60 bg-gradient-to-br from-card to-card/40 p-5">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-success text-success-foreground shadow-[0_8px_24px_-6px_oklch(0.65_0.17_155/0.55)]">
@@ -86,21 +120,104 @@ function JornadaDetail() {
               label="Turno"
               value={jornada.turno}
             />
-            <Stat
-              icon={<Clock className="h-4 w-4" />}
-              label="Horario"
-              value={`${jornada.horaInicio}`}
-              hint={`a ${jornada.horaFin}`}
-            />
-            <Stat
-              icon={<Users className="h-4 w-4" />}
-              label="Grupo"
-              value={jornada.grupo.replace("Grupo ", "")}
-            />
+            <Stat icon={<Clock className="h-4 w-4" />} label="Horario" value={jornada.horaInicio} hint={`a ${jornada.horaFin}`} />
+            <Stat icon={<Users className="h-4 w-4" />} label="Grupo" value={jornada.grupo.replace("Grupo ", "")} />
           </div>
         </div>
 
-        {/* Nota editable */}
+        {/* Información (admin-cargada, lectura para usuario) */}
+        <section className="mt-6">
+          <div className="mb-2 flex items-center gap-2 px-1">
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">Información de la jornada</h2>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+              {isAdmin ? "Admin" : "Solo lectura"}
+            </span>
+          </div>
+
+          {isAdmin && editAdmin ? (
+            <div className="space-y-3 rounded-2xl border border-border/60 bg-card p-4">
+              <Field label="Tipo de grupo" icon={<Layers className="h-3.5 w-3.5" />}>
+                <select
+                  value={tipoGrupo}
+                  onChange={(e) => setTipoGrupo(e.target.value as TipoGrupo)}
+                  className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-success"
+                >
+                  <option value="general">general</option>
+                  <option value="por grupo">por grupo</option>
+                </select>
+              </Field>
+              <Field label="Grupos" icon={<Users className="h-3.5 w-3.5" />}>
+                <input
+                  value={grupos}
+                  onChange={(e) => setGrupos(e.target.value)}
+                  placeholder="general o grupos 1-3-5"
+                  className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-success"
+                />
+              </Field>
+              <Field label="Actividad" icon={<Activity className="h-3.5 w-3.5" />}>
+                <select
+                  value={actividad}
+                  onChange={(e) => setActividad(e.target.value as Actividad)}
+                  className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-success"
+                >
+                  <option value="casa en casa">casa en casa</option>
+                  <option value="Cartas">Cartas</option>
+                </select>
+              </Field>
+              <Field label="Lugar de encuentro" icon={<MapPin className="h-3.5 w-3.5" />}>
+                <input
+                  value={lugar}
+                  onChange={(e) => setLugar(e.target.value)}
+                  maxLength={200}
+                  className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-success"
+                />
+              </Field>
+              <Field label="Capitán" icon={<UserCog className="h-3.5 w-3.5" />}>
+                <input
+                  value={capitan}
+                  onChange={(e) => setCapitan(e.target.value)}
+                  maxLength={120}
+                  className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-success"
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">{capitan.length}/120</p>
+              </Field>
+              <Field label="Territorio" icon={<Map className="h-3.5 w-3.5" />}>
+                <input
+                  value={territorio}
+                  onChange={(e) => setTerritorio(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 2))}
+                  maxLength={2}
+                  className="w-24 rounded-lg border border-border/60 bg-background px-3 py-2 text-sm uppercase outline-none focus:border-success"
+                />
+              </Field>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setEditAdmin(false)}
+                  className="flex-1 rounded-xl border border-border/60 py-2.5 text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveAdmin}
+                  className="flex-1 rounded-xl bg-success py-2.5 text-sm font-semibold text-success-foreground"
+                >
+                  Guardar info
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <InfoRow icon={<Layers className="h-3.5 w-3.5" />} label="Tipo de grupo" value={jornada.tipoGrupo} />
+              <InfoRow icon={<Users className="h-3.5 w-3.5" />} label="Grupos" value={jornada.grupos} />
+              <InfoRow icon={<Activity className="h-3.5 w-3.5" />} label="Actividad" value={jornada.actividad} />
+              <InfoRow icon={<Map className="h-3.5 w-3.5" />} label="Territorio" value={jornada.territorio || "—"} />
+              <InfoRow icon={<MapPin className="h-3.5 w-3.5" />} label="Lugar de encuentro" value={jornada.lugarEncuentro || "—"} className="col-span-2" />
+              <InfoRow icon={<UserCog className="h-3.5 w-3.5" />} label="Capitán" value={jornada.capitan || "—"} className="col-span-2" />
+            </div>
+          )}
+        </section>
+
+        {/* Nota editable por usuario */}
         <section className="mt-6">
           <div className="mb-2 flex items-center gap-2 px-1">
             <FileText className="h-4 w-4 text-success" />
@@ -111,21 +228,17 @@ function JornadaDetail() {
           </div>
           <textarea
             value={nota}
-            onChange={(e) => {
-              setNota(e.target.value);
-              setSaved(false);
-            }}
-            placeholder="Describe el avance del día, novedades, materiales, observaciones…"
-            rows={8}
+            onChange={(e) => { setNota(e.target.value); setSaved(false); }}
+            placeholder="Describe el avance del día, novedades, observaciones…"
+            rows={7}
             className="w-full resize-none rounded-2xl border border-border/60 bg-card p-4 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/70 outline-none transition focus:border-success focus:ring-2 focus:ring-success/20"
           />
           <p className="mt-2 px-1 text-[11px] text-muted-foreground">
-            {nota.length} caracteres · solo este campo puede modificarse
+            {nota.length} caracteres · único campo modificable por usuarios
           </p>
         </section>
       </main>
 
-      {/* Bottom action */}
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto max-w-md px-5 py-4">
           <button
@@ -152,5 +265,28 @@ function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: stri
       <p className="mt-1.5 text-sm font-semibold leading-tight">{value}</p>
       {hint ? <p className="text-[10px] text-muted-foreground">{hint}</p> : null}
     </div>
+  );
+}
+
+function InfoRow({ icon, label, value, className = "" }: { icon: React.ReactNode; label: string; value: string; className?: string }) {
+  return (
+    <div className={`rounded-xl border border-border/60 bg-card p-3 ${className}`}>
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        {icon}
+        <span className="text-[10px] font-medium uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="mt-1 break-words text-sm font-medium capitalize">{value}</p>
+    </div>
+  );
+}
+
+function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {icon} {label}
+      </span>
+      {children}
+    </label>
   );
 }
