@@ -59,12 +59,42 @@ function JornadaDetail() {
 
   const [y, m, d] = jornada.fecha.split("-").map(Number);
   const fechaLarga = `${d} de ${MESES[m - 1]}, ${y}`;
-  const dirty = nota !== jornada.nota;
+  const dirty =
+    nota !== jornada.nota || lat !== jornada.notaLat || lng !== jornada.notaLng;
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
 
   const handleSave = () => {
-    updateNota(jornada.id, nota);
+    updateNota(jornada.id, nota, hasCoords ? { lat, lng } : null);
     setSaved(true);
     setTimeout(() => navigate({ to: "/" }), 600);
+  };
+
+  const captureGPS = () => {
+    if (!("geolocation" in navigator)) {
+      setGpsError("Tu dispositivo no soporta geolocalización");
+      return;
+    }
+    setGpsError(null);
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(Number(pos.coords.latitude.toFixed(6)));
+        setLng(Number(pos.coords.longitude.toFixed(6)));
+        setGpsLoading(false);
+        setSaved(false);
+      },
+      (err) => {
+        setGpsError(err.message || "No se pudo obtener la ubicación");
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  const clearGPS = () => {
+    setLat(undefined);
+    setLng(undefined);
+    setSaved(false);
   };
 
   const handleSaveAdmin = () => {
