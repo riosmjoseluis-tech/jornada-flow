@@ -113,7 +113,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <JornadasProvider>
+        <Outlet />
+      </JornadasProvider>
     </QueryClientProvider>
   );
 }
