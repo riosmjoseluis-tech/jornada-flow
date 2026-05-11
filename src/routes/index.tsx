@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { CalendarDays, ChevronRight, Sun, Moon, Users, Plus } from "lucide-react";
+import { CalendarDays, ChevronRight, Sun, Moon, Users, Plus, BarChart3 } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Jornada } from "@/lib/jornadas-data";
 
