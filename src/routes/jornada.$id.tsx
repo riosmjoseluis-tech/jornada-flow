@@ -41,6 +41,9 @@ function JornadaDetail() {
     setLugar(jornada.lugarEncuentro);
     setCapitan(jornada.capitan);
     setTerritorio(jornada.territorio);
+    setLat(jornada.notaLat);
+    setLng(jornada.notaLng);
+    setGpsError(null);
   }, [jornada?.id]);
 
   if (!jornada) {
