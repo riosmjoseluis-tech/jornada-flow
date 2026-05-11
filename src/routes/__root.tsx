@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { JornadasProvider } from "@/lib/jornadas-store";
 
 function NotFoundComponent() {
   return (
