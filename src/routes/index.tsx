@@ -23,7 +23,7 @@ function parseFecha(iso: string) {
 }
 
 function Index() {
-  const { jornadas } = useJornadas();
+  const { jornadas, isAdmin, setAdmin } = useJornadas();
 
   const grupos = useMemo(() => {
     const sorted = [...jornadas].sort((a, b) => {
