@@ -5,6 +5,8 @@ interface Ctx {
   jornadas: Jornada[];
   updateNota: (id: string, nota: string) => void;
   updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
+  addJornada: (j: Omit<Jornada, "id">) => string;
+  deleteJornada: (id: string) => void;
   isAdmin: boolean;
   setAdmin: (v: boolean) => void;
 }
@@ -40,8 +42,17 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
   const updateJornada = (id: string, patch: Partial<Omit<Jornada, "id">>) =>
     setJornadas((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j)));
 
+  const addJornada = (j: Omit<Jornada, "id">) => {
+    const id = `j-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setJornadas((prev) => [...prev, { ...j, id }]);
+    return id;
+  };
+
+  const deleteJornada = (id: string) =>
+    setJornadas((prev) => prev.filter((j) => j.id !== id));
+
   return (
-    <JornadasContext.Provider value={{ jornadas, updateNota, updateJornada, isAdmin, setAdmin }}>
+    <JornadasContext.Provider value={{ jornadas, updateNota, updateJornada, addJornada, deleteJornada, isAdmin, setAdmin }}>
       {children}
     </JornadasContext.Provider>
   );

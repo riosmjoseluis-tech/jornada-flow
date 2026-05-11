@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2 } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Actividad, TipoGrupo } from "@/lib/jornadas-data";
 
@@ -12,7 +12,7 @@ const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto"
 
 function JornadaDetail() {
   const { id } = Route.useParams();
-  const { jornadas, updateNota, updateJornada, isAdmin } = useJornadas();
+  const { jornadas, updateNota, updateJornada, deleteJornada, isAdmin } = useJornadas();
   const navigate = useNavigate();
   const jornada = jornadas.find((j) => j.id === id);
 
@@ -214,6 +214,20 @@ function JornadaDetail() {
               <InfoRow icon={<MapPin className="h-3.5 w-3.5" />} label="Lugar de encuentro" value={jornada.lugarEncuentro || "—"} className="col-span-2" />
               <InfoRow icon={<UserCog className="h-3.5 w-3.5" />} label="Capitán" value={jornada.capitan || "—"} className="col-span-2" />
             </div>
+          )}
+
+          {isAdmin && !editAdmin && (
+            <button
+              onClick={() => {
+                if (confirm("¿Eliminar esta jornada? Esta acción no se puede deshacer.")) {
+                  deleteJornada(jornada.id);
+                  navigate({ to: "/" });
+                }
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 py-2.5 text-sm font-semibold text-destructive transition active:scale-[0.98]"
+            >
+              <Trash2 className="h-4 w-4" /> Eliminar jornada
+            </button>
           )}
         </section>
 

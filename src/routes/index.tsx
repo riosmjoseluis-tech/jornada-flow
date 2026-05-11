@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { CalendarDays, ChevronRight, Sun, Moon, Users } from "lucide-react";
+import { CalendarDays, ChevronRight, Sun, Moon, Users, Plus } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Jornada } from "@/lib/jornadas-data";
 
@@ -93,6 +93,17 @@ function Index() {
           </section>
         ))}
       </main>
+
+      {isAdmin && (
+        <Link
+          to="/jornada/nueva"
+          className="fixed bottom-6 left-1/2 z-20 flex h-14 -translate-x-1/2 items-center gap-2 rounded-full bg-success px-6 font-semibold text-success-foreground shadow-[0_10px_30px_-8px_oklch(0.65_0.17_155/0.7)] transition active:scale-95"
+          aria-label="Nueva jornada"
+        >
+          <Plus className="h-5 w-5" />
+          Nueva jornada
+        </Link>
+      )}
     </div>
   );
 }
