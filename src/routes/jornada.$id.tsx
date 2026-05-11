@@ -19,6 +19,10 @@ function JornadaDetail() {
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
   const [editAdmin, setEditAdmin] = useState(false);
+  const [lat, setLat] = useState<number | undefined>(jornada?.notaLat);
+  const [lng, setLng] = useState<number | undefined>(jornada?.notaLng);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
 
   // admin form state
   const [tipoGrupo, setTipoGrupo] = useState<TipoGrupo>(jornada?.tipoGrupo ?? "general");
