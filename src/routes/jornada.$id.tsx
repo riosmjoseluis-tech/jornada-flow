@@ -12,7 +12,7 @@ const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto"
 
 function JornadaDetail() {
   const { id } = Route.useParams();
-  const { jornadas, updateNota, updateJornada, isAdmin } = useJornadas();
+  const { jornadas, updateNota, updateJornada, deleteJornada, isAdmin } = useJornadas();
   const navigate = useNavigate();
   const jornada = jornadas.find((j) => j.id === id);
 
