@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { CalendarDays, ChevronRight, Sun, Moon, Users, Plus, BarChart3 } from "lucide-react";
+import { CalendarDays, ChevronRight, Sun, Moon, Users, Plus, BarChart3, MapPin } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Jornada } from "@/lib/jornadas-data";
 
@@ -160,9 +160,14 @@ function JornadaCard({ jornada }: { jornada: Jornada }) {
           <Users className="h-3.5 w-3.5 text-muted-foreground" />
           <p className="truncate text-sm font-medium text-foreground">{jornada.grupo}</p>
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {tienNota ? jornada.nota : "Sin nota de avance"}
-        </p>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          {typeof jornada.notaLat === "number" && typeof jornada.notaLng === "number" && (
+            <MapPin className="h-3 w-3 shrink-0 text-success" />
+          )}
+          <p className="truncate text-xs text-muted-foreground">
+            {tienNota ? jornada.nota : "Sin nota de avance"}
+          </p>
+        </div>
       </div>
 
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />

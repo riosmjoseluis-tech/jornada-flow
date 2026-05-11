@@ -3,7 +3,7 @@ import { jornadasIniciales, type Jornada } from "./jornadas-data";
 
 interface Ctx {
   jornadas: Jornada[];
-  updateNota: (id: string, nota: string) => void;
+  updateNota: (id: string, nota: string, coords?: { lat?: number; lng?: number } | null) => void;
   updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
   addJornada: (j: Omit<Jornada, "id">) => string;
   deleteJornada: (id: string) => void;
@@ -36,8 +36,17 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(ADMIN_KEY, v ? "1" : "0"); } catch {}
   };
 
-  const updateNota = (id: string, nota: string) =>
-    setJornadas((prev) => prev.map((j) => (j.id === id ? { ...j, nota } : j)));
+  const updateNota = (id: string, nota: string, coords?: { lat?: number; lng?: number } | null) =>
+    setJornadas((prev) => prev.map((j) => {
+      if (j.id !== id) return j;
+      const next: Jornada = { ...j, nota };
+      if (coords === null) { delete next.notaLat; delete next.notaLng; }
+      else if (coords) {
+        if (typeof coords.lat === "number") next.notaLat = coords.lat;
+        if (typeof coords.lng === "number") next.notaLng = coords.lng;
+      }
+      return next;
+    }));
 
   const updateJornada = (id: string, patch: Partial<Omit<Jornada, "id">>) =>
     setJornadas((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j)));

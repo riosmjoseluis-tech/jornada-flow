@@ -76,7 +76,7 @@ function NuevaJornada() {
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={inputCls} />
         </Field>
         <div className="grid grid-cols-3 gap-2">
-          <Field label="Turno">
+          <Field label="Jornada">
             <select value={turno} onChange={(e) => setTurno(e.target.value as Turno)} className={inputCls}>
               <option value="AM">AM</option><option value="PM">PM</option>
             </select>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2, MapPinned, X, Loader2, ExternalLink } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Actividad, TipoGrupo } from "@/lib/jornadas-data";
 
@@ -19,6 +19,10 @@ function JornadaDetail() {
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
   const [editAdmin, setEditAdmin] = useState(false);
+  const [lat, setLat] = useState<number | undefined>(jornada?.notaLat);
+  const [lng, setLng] = useState<number | undefined>(jornada?.notaLng);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
 
   // admin form state
   const [tipoGrupo, setTipoGrupo] = useState<TipoGrupo>(jornada?.tipoGrupo ?? "general");
@@ -37,6 +41,9 @@ function JornadaDetail() {
     setLugar(jornada.lugarEncuentro);
     setCapitan(jornada.capitan);
     setTerritorio(jornada.territorio);
+    setLat(jornada.notaLat);
+    setLng(jornada.notaLng);
+    setGpsError(null);
   }, [jornada?.id]);
 
   if (!jornada) {
@@ -52,12 +59,42 @@ function JornadaDetail() {
 
   const [y, m, d] = jornada.fecha.split("-").map(Number);
   const fechaLarga = `${d} de ${MESES[m - 1]}, ${y}`;
-  const dirty = nota !== jornada.nota;
+  const dirty =
+    nota !== jornada.nota || lat !== jornada.notaLat || lng !== jornada.notaLng;
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
 
   const handleSave = () => {
-    updateNota(jornada.id, nota);
+    updateNota(jornada.id, nota, hasCoords ? { lat, lng } : null);
     setSaved(true);
     setTimeout(() => navigate({ to: "/" }), 600);
+  };
+
+  const captureGPS = () => {
+    if (!("geolocation" in navigator)) {
+      setGpsError("Tu dispositivo no soporta geolocalización");
+      return;
+    }
+    setGpsError(null);
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(Number(pos.coords.latitude.toFixed(6)));
+        setLng(Number(pos.coords.longitude.toFixed(6)));
+        setGpsLoading(false);
+        setSaved(false);
+      },
+      (err) => {
+        setGpsError(err.message || "No se pudo obtener la ubicación");
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  const clearGPS = () => {
+    setLat(undefined);
+    setLng(undefined);
+    setSaved(false);
   };
 
   const handleSaveAdmin = () => {
@@ -117,7 +154,7 @@ function JornadaDetail() {
           <div className="mt-5 grid grid-cols-3 gap-2">
             <Stat
               icon={jornada.turno === "AM" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              label="Turno"
+              label="Jornada"
               value={jornada.turno}
             />
             <Stat icon={<Clock className="h-4 w-4" />} label="Horario" value={jornada.horaInicio} hint={`a ${jornada.horaFin}`} />
@@ -250,6 +287,63 @@ function JornadaDetail() {
           <p className="mt-2 px-1 text-[11px] text-muted-foreground">
             {nota.length} caracteres · único campo modificable por usuarios
           </p>
+
+          {/* Ubicación GPS */}
+          <div className="mt-4 rounded-2xl border border-border/60 bg-card p-4">
+            <div className="flex items-center gap-2">
+              <MapPinned className="h-4 w-4 text-success" />
+              <h3 className="text-sm font-semibold">Ubicación de cierre</h3>
+              <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">GPS</span>
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Marca dónde quedó el grupo al terminar (dentro o fuera del campo).
+            </p>
+
+            {hasCoords ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-background/50 p-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Coordenadas</p>
+                    <p className="mt-0.5 truncate font-mono text-xs text-foreground">{lat!.toFixed(6)}, {lng!.toFixed(6)}</p>
+                  </div>
+                  <button
+                    onClick={clearGPS}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition active:scale-95 hover:text-destructive"
+                    aria-label="Quitar ubicación"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-success/40 bg-success/10 py-2.5 text-xs font-semibold text-success transition active:scale-[0.98]"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Abrir en Google Maps
+                </a>
+                <button
+                  onClick={captureGPS}
+                  disabled={gpsLoading}
+                  className="w-full rounded-xl border border-border/60 py-2 text-xs font-medium text-muted-foreground active:scale-[0.98] disabled:opacity-60"
+                >
+                  {gpsLoading ? "Obteniendo…" : "Actualizar ubicación"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={captureGPS}
+                disabled={gpsLoading}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-success py-2.5 text-sm font-semibold text-success-foreground shadow-[0_6px_20px_-6px_oklch(0.65_0.17_155/0.5)] transition active:scale-[0.98] disabled:opacity-70"
+              >
+                {gpsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPinned className="h-4 w-4" />}
+                {gpsLoading ? "Obteniendo ubicación…" : "Capturar mi ubicación"}
+              </button>
+            )}
+            {gpsError && (
+              <p className="mt-2 text-[11px] font-medium text-destructive">{gpsError}</p>
+            )}
+          </div>
         </section>
       </main>
 
