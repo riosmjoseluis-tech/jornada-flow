@@ -154,7 +154,7 @@ function JornadaDetail() {
           <div className="mt-5 grid grid-cols-3 gap-2">
             <Stat
               icon={jornada.turno === "AM" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              label="Turno"
+              label="Jornada"
               value={jornada.turno}
             />
             <Stat icon={<Clock className="h-4 w-4" />} label="Horario" value={jornada.horaInicio} hint={`a ${jornada.horaFin}`} />
