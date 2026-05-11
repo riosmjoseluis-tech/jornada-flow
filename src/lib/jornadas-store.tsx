@@ -5,6 +5,8 @@ interface Ctx {
   jornadas: Jornada[];
   updateNota: (id: string, nota: string) => void;
   updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
+  addJornada: (j: Omit<Jornada, "id">) => string;
+  deleteJornada: (id: string) => void;
   isAdmin: boolean;
   setAdmin: (v: boolean) => void;
 }
