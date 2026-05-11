@@ -3,7 +3,7 @@ import { jornadasIniciales, type Jornada } from "./jornadas-data";
 
 interface Ctx {
   jornadas: Jornada[];
-  updateNota: (id: string, nota: string) => void;
+  updateNota: (id: string, nota: string, coords?: { lat?: number; lng?: number } | null) => void;
   updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
   addJornada: (j: Omit<Jornada, "id">) => string;
   deleteJornada: (id: string) => void;
