@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2 } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Actividad, TipoGrupo } from "@/lib/jornadas-data";
 
