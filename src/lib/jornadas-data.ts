@@ -16,6 +16,8 @@ export interface Jornada {
   capitan: string; // hasta 120 chars
   territorio: string; // varchar(2)
   nota: string;
+  notaLat?: number;
+  notaLng?: number;
 }
 
 export const jornadasIniciales: Jornada[] = [
