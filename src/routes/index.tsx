@@ -67,7 +67,13 @@ function Index() {
                 Historial
               </Link>
               <button
-                onClick={() => setAdmin(!isAdmin)}
+                onClick={() => {
+                  if (isAdmin) { setAdmin(false); return; }
+                  const pass = window.prompt("Contraseña de administrador");
+                  if (pass === null) return;
+                  if (pass === "admin1234") setAdmin(true);
+                  else window.alert("Contraseña incorrecta");
+                }}
                 className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${
                   isAdmin
                     ? "border-success/40 bg-success/15 text-success"
