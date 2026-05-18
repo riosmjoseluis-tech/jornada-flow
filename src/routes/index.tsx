@@ -53,9 +53,9 @@ function Index() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Bitácora
+                Congregación Machali
               </p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight">Mis jornadas</h1>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight">Jornadas Predicacion</h1>
             </div>
             <div className="flex items-center gap-2">
               <Link
