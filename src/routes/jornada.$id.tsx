@@ -1,6 +1,27 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2, MapPinned, X, Loader2, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  Clock,
+  Sun,
+  Moon,
+  Users,
+  FileText,
+  MapPin,
+  UserCog,
+  Map,
+  Activity,
+  Layers,
+  ShieldCheck,
+  Pencil,
+  Trash2,
+  MapPinned,
+  X,
+  Loader2,
+  ExternalLink,
+} from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
 import type { Actividad, TipoGrupo } from "@/lib/jornadas-data";
 
@@ -8,7 +29,20 @@ export const Route = createFileRoute("/jornada/$id")({
   component: JornadaDetail,
 });
 
-const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const MESES = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
 
 function JornadaDetail() {
   const { id } = Route.useParams();
@@ -23,6 +57,8 @@ function JornadaDetail() {
   const [lng, setLng] = useState<number | undefined>(jornada?.notaLng);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
 
   // admin form state
   const [tipoGrupo, setTipoGrupo] = useState<TipoGrupo>(jornada?.tipoGrupo ?? "general");
@@ -44,13 +80,17 @@ function JornadaDetail() {
     setLat(jornada.notaLat);
     setLng(jornada.notaLng);
     setGpsError(null);
+    setGpsAccuracy(null);
   }, [jornada?.id]);
 
   if (!jornada) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-muted-foreground">Jornada no encontrada</p>
-        <Link to="/" className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">
+        <Link
+          to="/"
+          className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground"
+        >
           Volver
         </Link>
       </div>
@@ -59,8 +99,7 @@ function JornadaDetail() {
 
   const [y, m, d] = jornada.fecha.split("-").map(Number);
   const fechaLarga = `${d} de ${MESES[m - 1]}, ${y}`;
-  const dirty =
-    nota !== jornada.nota || lat !== jornada.notaLat || lng !== jornada.notaLng;
+  const dirty = nota !== jornada.nota || lat !== jornada.notaLat || lng !== jornada.notaLng;
   const hasCoords = typeof lat === "number" && typeof lng === "number";
 
   const handleSave = () => {
@@ -74,12 +113,30 @@ function JornadaDetail() {
       setGpsError("Tu dispositivo no soporta geolocalización");
       return;
     }
+
     setGpsError(null);
     setGpsLoading(true);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLat(Number(pos.coords.latitude.toFixed(6)));
-        setLng(Number(pos.coords.longitude.toFixed(6)));
+        const accuracy = pos.coords.accuracy;
+        setGpsAccuracy(accuracy);
+
+        // Rechazar ubicaciones imprecisas
+        if (accuracy > 80) {
+          setGpsError(
+            `Ubicación poco precisa (${Math.round(accuracy)}m). Muévete a un lugar abierto e inténtalo nuevamente.`,
+          );
+
+          setGpsLoading(false);
+          return;
+        }
+
+        setLat(pos.coords.latitude);
+        setLng(pos.coords.longitude);
+
+        console.log("Precisión GPS:", accuracy, "metros");
+
         setGpsLoading(false);
         setSaved(false);
       },
@@ -87,13 +144,17 @@ function JornadaDetail() {
         setGpsError(err.message || "No se pudo obtener la ubicación");
         setGpsLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      },
     );
   };
-
   const clearGPS = () => {
     setLat(undefined);
     setLng(undefined);
+    setGpsAccuracy(null);
     setSaved(false);
   };
 
@@ -153,12 +214,23 @@ function JornadaDetail() {
 
           <div className="mt-5 grid grid-cols-3 gap-2">
             <Stat
-              icon={jornada.turno === "AM" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              icon={
+                jornada.turno === "AM" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
+              }
               label="Jornada"
               value={jornada.turno}
             />
-            <Stat icon={<Clock className="h-4 w-4" />} label="Horario" value={jornada.horaInicio} hint={`a ${jornada.horaFin}`} />
-            <Stat icon={<Users className="h-4 w-4" />} label="Grupo" value={jornada.grupo.replace("Grupo ", "")} />
+            <Stat
+              icon={<Clock className="h-4 w-4" />}
+              label="Horario"
+              value={jornada.horaInicio}
+              hint={`a ${jornada.horaFin}`}
+            />
+            <Stat
+              icon={<Users className="h-4 w-4" />}
+              label="Grupo"
+              value={jornada.grupo.replace("Grupo ", "")}
+            />
           </div>
         </div>
 
@@ -222,7 +294,9 @@ function JornadaDetail() {
               <Field label="Territorio" icon={<Map className="h-3.5 w-3.5" />}>
                 <input
                   value={territorio}
-                  onChange={(e) => setTerritorio(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 2))}
+                  onChange={(e) =>
+                    setTerritorio(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 2))
+                  }
                   maxLength={2}
                   className="w-24 rounded-lg border border-border/60 bg-background px-3 py-2 text-sm uppercase outline-none focus:border-success"
                 />
@@ -244,12 +318,38 @@ function JornadaDetail() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              <InfoRow icon={<Layers className="h-3.5 w-3.5" />} label="Tipo de grupo" value={jornada.tipoGrupo} />
-              <InfoRow icon={<Users className="h-3.5 w-3.5" />} label="Grupos" value={jornada.grupos} />
-              <InfoRow icon={<Activity className="h-3.5 w-3.5" />} label="Actividad" value={jornada.actividad} />
-              <InfoRow icon={<Map className="h-3.5 w-3.5" />} label="Territorio" value={jornada.territorio || "—"} />
-              <InfoRow icon={<MapPin className="h-3.5 w-3.5" />} label="Lugar de encuentro" value={jornada.lugarEncuentro || "—"} className="col-span-2" />
-              <InfoRow icon={<UserCog className="h-3.5 w-3.5" />} label="Capitán" value={jornada.capitan || "—"} className="col-span-2" />
+              <InfoRow
+                icon={<Layers className="h-3.5 w-3.5" />}
+                label="Tipo de grupo"
+                value={jornada.tipoGrupo}
+              />
+              <InfoRow
+                icon={<Users className="h-3.5 w-3.5" />}
+                label="Grupos"
+                value={jornada.grupos}
+              />
+              <InfoRow
+                icon={<Activity className="h-3.5 w-3.5" />}
+                label="Actividad"
+                value={jornada.actividad}
+              />
+              <InfoRow
+                icon={<Map className="h-3.5 w-3.5" />}
+                label="Territorio"
+                value={jornada.territorio || "—"}
+              />
+              <InfoRow
+                icon={<MapPin className="h-3.5 w-3.5" />}
+                label="Lugar de encuentro"
+                value={jornada.lugarEncuentro || "—"}
+                className="col-span-2"
+              />
+              <InfoRow
+                icon={<UserCog className="h-3.5 w-3.5" />}
+                label="Capitán"
+                value={jornada.capitan || "—"}
+                className="col-span-2"
+              />
             </div>
           )}
 
@@ -279,7 +379,10 @@ function JornadaDetail() {
           </div>
           <textarea
             value={nota}
-            onChange={(e) => { setNota(e.target.value); setSaved(false); }}
+            onChange={(e) => {
+              setNota(e.target.value);
+              setSaved(false);
+            }}
             placeholder="Describe el avance del día, novedades, observaciones…"
             rows={7}
             className="w-full resize-none rounded-2xl border border-border/60 bg-card p-4 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/70 outline-none transition focus:border-success focus:ring-2 focus:ring-success/20"
@@ -293,7 +396,9 @@ function JornadaDetail() {
             <div className="flex items-center gap-2">
               <MapPinned className="h-4 w-4 text-success" />
               <h3 className="text-sm font-semibold">Ubicación de cierre</h3>
-              <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">GPS</span>
+              <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+                GPS
+              </span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">
               Marca dónde quedó el grupo al terminar (dentro o fuera del campo).
@@ -303,8 +408,18 @@ function JornadaDetail() {
               <div className="mt-3 space-y-2">
                 <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-background/50 p-3">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Coordenadas</p>
-                    <p className="mt-0.5 truncate font-mono text-xs text-foreground">{lat!.toFixed(6)}, {lng!.toFixed(6)}</p>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Coordenadas
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-xs text-foreground">
+                      {lat!.toFixed(6)}, {lng!.toFixed(6)}
+                    </p>
+
+                    {gpsAccuracy && (
+                      <p className="mt-1 text-[10px] font-medium text-success">
+                        Precisión GPS: {Math.round(gpsAccuracy)}m
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={clearGPS}
@@ -336,7 +451,11 @@ function JornadaDetail() {
                 disabled={gpsLoading}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-success py-2.5 text-sm font-semibold text-success-foreground shadow-[0_6px_20px_-6px_oklch(0.65_0.17_155/0.5)] transition active:scale-[0.98] disabled:opacity-70"
               >
-                {gpsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPinned className="h-4 w-4" />}
+                {gpsLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MapPinned className="h-4 w-4" />
+                )}
                 {gpsLoading ? "Obteniendo ubicación…" : "Capturar mi ubicación"}
               </button>
             )}
@@ -363,7 +482,17 @@ function JornadaDetail() {
   );
 }
 
-function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+}) {
   return (
     <div className="rounded-xl border border-border/50 bg-background/40 p-3">
       <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -376,7 +505,17 @@ function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: stri
   );
 }
 
-function InfoRow({ icon, label, value, className = "" }: { icon: React.ReactNode; label: string; value: string; className?: string }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+  className = "",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  className?: string;
+}) {
   return (
     <div className={`rounded-xl border border-border/60 bg-card p-3 ${className}`}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -388,7 +527,15 @@ function InfoRow({ icon, label, value, className = "" }: { icon: React.ReactNode
   );
 }
 
-function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Field({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
