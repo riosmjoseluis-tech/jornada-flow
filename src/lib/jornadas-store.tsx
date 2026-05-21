@@ -1,5 +1,12 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { jornadasIniciales, type Jornada } from "./jornadas-data";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface Ctx {
@@ -9,18 +16,23 @@ interface Ctx {
     nota: string,
     coords?: { lat?: number; lng?: number } | null
   ) => Promise<void>;
-  updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
-  addJornada: (j: Omit<Jornada, "id">) => string;
+  updateJornada: (
+    id: string,
+    patch: Partial<Omit<Jornada, "id">>
+  ) => void;
+  addJornada: (j: Omit<Jornada, "id">) => Promise<void>;
   deleteJornada: (id: string) => void;
   isAdmin: boolean;
   setAdmin: (v: boolean) => void;
 }
 
 const JornadasContext = createContext<Ctx | null>(null);
+
 const ADMIN_KEY = "jornadas-admin";
 
 export function JornadasProvider({ children }: { children: ReactNode }) {
-  const [jornadas, setJornadas] = useState<Jornada[]>(jornadasIniciales);
+  const [jornadas, setJornadas] =
+    useState<Jornada[]>(jornadasIniciales);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -44,13 +56,36 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
 
   const setAdmin = (v: boolean) => {
     setIsAdmin(v);
-    try { localStorage.setItem(ADMIN_KEY, v ? "1" : "0"); } catch { }
+    try {
+      localStorage.setItem(ADMIN_KEY, v ? "1" : "0");
+    } catch {}
+  };
+
+  // ✅ CREATE JORNADA (CORRECTO)
+  const addJornada = async (j: Omit<Jornada, "id">) => {
+    try {
+      const res = await fetch(`${API_URL}/jornadas`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(j),
+      });
+
+      if (!res.ok) throw new Error("Error creando jornada");
+
+      const data = await res.json();
+
+      setJornadas((prev) => [data, ...prev]);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const updateNota = async (
     id: string,
     nota: string,
-    coords?: { lat?: number; lng?: number } | null,
+    coords?: { lat?: number; lng?: number } | null
   ) => {
     try {
       const body = {
@@ -59,13 +94,16 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
         notaLng: coords?.lng ?? null,
       };
 
-      const res = await fetch(`${API_URL}/jornadas/${id}/nota`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `${API_URL}/jornadas/${id}/nota`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Error actualizando nota");
@@ -75,33 +113,48 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
         prev.map((j) =>
           j.id === id
             ? {
-              ...j,
-              nota,
-              notaLat: coords?.lat,
-              notaLng: coords?.lng,
-            }
-            : j,
-        ),
+                ...j,
+                nota,
+                notaLat: coords?.lat,
+                notaLng: coords?.lng,
+              }
+            : j
+        )
       );
     } catch (err) {
       console.error(err);
     }
   };
 
-  const updateJornada = (id: string, patch: Partial<Omit<Jornada, "id">>) =>
-    setJornadas((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j)));
-
-  const addJornada = (j: Omit<Jornada, "id">) => {
-    const id = `j-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    setJornadas((prev) => [...prev, { ...j, id }]);
-    return id;
+  const updateJornada = (
+    id: string,
+    patch: Partial<Omit<Jornada, "id">>
+  ) => {
+    setJornadas((prev) =>
+      prev.map((j) =>
+        j.id === id ? { ...j, ...patch } : j
+      )
+    );
   };
 
-  const deleteJornada = (id: string) =>
-    setJornadas((prev) => prev.filter((j) => j.id !== id));
+  const deleteJornada = (id: string) => {
+    setJornadas((prev) =>
+      prev.filter((j) => j.id !== id)
+    );
+  };
 
   return (
-    <JornadasContext.Provider value={{ jornadas, updateNota, updateJornada, addJornada, deleteJornada, isAdmin, setAdmin }}>
+    <JornadasContext.Provider
+      value={{
+        jornadas,
+        updateNota,
+        updateJornada,
+        addJornada,
+        deleteJornada,
+        isAdmin,
+        setAdmin,
+      }}
+    >
       {children}
     </JornadasContext.Provider>
   );
@@ -109,6 +162,9 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
 
 export function useJornadas() {
   const ctx = useContext(JornadasContext);
-  if (!ctx) throw new Error("useJornadas must be inside JornadasProvider");
+  if (!ctx)
+    throw new Error(
+      "useJornadas must be inside JornadasProvider"
+    );
   return ctx;
 }
