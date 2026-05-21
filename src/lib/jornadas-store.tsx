@@ -1,9 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { jornadasIniciales, type Jornada } from "./jornadas-data";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Ctx {
   jornadas: Jornada[];
-  updateNota: (id: string, nota: string, coords?: { lat?: number; lng?: number } | null) => void;
+  updateNota: (
+    id: string,
+    nota: string,
+    coords?: { lat?: number; lng?: number } | null
+  ) => Promise<void>;
   updateJornada: (id: string, patch: Partial<Omit<Jornada, "id">>) => void;
   addJornada: (j: Omit<Jornada, "id">) => string;
   deleteJornada: (id: string) => void;
@@ -12,7 +17,6 @@ interface Ctx {
 }
 
 const JornadasContext = createContext<Ctx | null>(null);
-const KEY = "jornadas-v2";
 const ADMIN_KEY = "jornadas-admin";
 
 export function JornadasProvider({ children }: { children: ReactNode }) {
@@ -20,33 +24,69 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setJornadas(JSON.parse(raw));
-      setIsAdmin(localStorage.getItem(ADMIN_KEY) === "1");
-    } catch {}
-  }, []);
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/jornadas`);
+        const data = await res.json();
 
-  useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(jornadas)); } catch {}
-  }, [jornadas]);
+        if (Array.isArray(data)) {
+          setJornadas(data);
+        }
+
+        setIsAdmin(localStorage.getItem(ADMIN_KEY) === "1");
+      } catch (err) {
+        console.error("Error cargando jornadas:", err);
+      }
+    };
+
+    load();
+  }, []);
 
   const setAdmin = (v: boolean) => {
     setIsAdmin(v);
-    try { localStorage.setItem(ADMIN_KEY, v ? "1" : "0"); } catch {}
+    try { localStorage.setItem(ADMIN_KEY, v ? "1" : "0"); } catch { }
   };
 
-  const updateNota = (id: string, nota: string, coords?: { lat?: number; lng?: number } | null) =>
-    setJornadas((prev) => prev.map((j) => {
-      if (j.id !== id) return j;
-      const next: Jornada = { ...j, nota };
-      if (coords === null) { delete next.notaLat; delete next.notaLng; }
-      else if (coords) {
-        if (typeof coords.lat === "number") next.notaLat = coords.lat;
-        if (typeof coords.lng === "number") next.notaLng = coords.lng;
+  const updateNota = async (
+    id: string,
+    nota: string,
+    coords?: { lat?: number; lng?: number } | null,
+  ) => {
+    try {
+      const body = {
+        nota,
+        notaLat: coords?.lat ?? null,
+        notaLng: coords?.lng ?? null,
+      };
+
+      const res = await fetch(`${API_URL}/jornadas/${id}/nota`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        throw new Error("Error actualizando nota");
       }
-      return next;
-    }));
+
+      setJornadas((prev) =>
+        prev.map((j) =>
+          j.id === id
+            ? {
+              ...j,
+              nota,
+              notaLat: coords?.lat,
+              notaLng: coords?.lng,
+            }
+            : j,
+        ),
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const updateJornada = (id: string, patch: Partial<Omit<Jornada, "id">>) =>
     setJornadas((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j)));
