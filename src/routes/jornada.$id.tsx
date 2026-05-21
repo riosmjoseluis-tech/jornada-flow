@@ -8,7 +8,7 @@ export const Route = createFileRoute("/jornada/$id")({
   component: JornadaDetail,
 });
 
-const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 function JornadaDetail() {
   const { id } = Route.useParams();
@@ -23,7 +23,7 @@ function JornadaDetail() {
   const [lng, setLng] = useState<number | undefined>(jornada?.notaLng);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
-
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   // admin form state
   const [tipoGrupo, setTipoGrupo] = useState<TipoGrupo>(jornada?.tipoGrupo ?? "general");
   const [grupos, setGrupos] = useState(jornada?.grupos ?? "general");
@@ -44,7 +44,7 @@ function JornadaDetail() {
     setLat(jornada.notaLat);
     setLng(jornada.notaLng);
     setGpsError(null);
-  }, [jornada?.id]);
+  }, [jornada]);
 
   if (!jornada) {
     return (
@@ -74,26 +74,85 @@ function JornadaDetail() {
       setGpsError("Tu dispositivo no soporta geolocalización");
       return;
     }
+
     setGpsError(null);
     setGpsLoading(true);
-    navigator.geolocation.getCurrentPosition(
+
+    let bestPosition: GeolocationPosition | null = null;
+    let attempts = 0;
+
+    let watchId = 0;
+
+    watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        setLat(Number(pos.coords.latitude.toFixed(6)));
-        setLng(Number(pos.coords.longitude.toFixed(6)));
-        setGpsLoading(false);
-        setSaved(false);
+        attempts++;
+
+        if (
+          !bestPosition ||
+          pos.coords.accuracy < bestPosition.coords.accuracy
+        ) {
+          bestPosition = pos;
+        }
+
+        // si ya logró buena precisión
+        if (pos.coords.accuracy <= 20 || attempts >= 5) {
+          navigator.geolocation.clearWatch(watchId);
+
+          if (!bestPosition) {
+            setGpsError("No se pudo obtener ubicación");
+            setGpsLoading(false);
+            return;
+          }
+
+          const accuracy = bestPosition.coords.accuracy;
+
+          setGpsAccuracy(accuracy);
+
+          if (accuracy > 80) {
+            setGpsError(
+              `Ubicación poco precisa (${Math.round(
+                accuracy,
+              )}m). Muévete a un lugar abierto e inténtalo nuevamente.`,
+            );
+
+            setGpsLoading(false);
+            return;
+          }
+          setGpsError(null);
+
+          setLat(Number(bestPosition.coords.latitude.toFixed(6)));
+          setLng(Number(bestPosition.coords.longitude.toFixed(6)));
+
+          console.log(
+            "GPS FINAL:",
+            bestPosition.coords.latitude,
+            bestPosition.coords.longitude,
+            "Precisión:",
+            accuracy,
+          );
+
+          setGpsLoading(false);
+          setSaved(false);
+        }
       },
       (err) => {
+        navigator.geolocation.clearWatch(watchId);
+
         setGpsError(err.message || "No se pudo obtener la ubicación");
         setGpsLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      },
     );
   };
 
   const clearGPS = () => {
     setLat(undefined);
     setLng(undefined);
+    setGpsAccuracy(null);
     setSaved(false);
   };
 
@@ -298,6 +357,9 @@ function JornadaDetail() {
             <p className="mt-1 text-[11px] text-muted-foreground">
               Marca dónde quedó el grupo al terminar (dentro o fuera del campo).
             </p>
+            <p className="mt-1 text-[10px] text-amber-400">
+              Para mayor precisión activa el GPS del teléfono y espera unos segundos.
+            </p>
 
             {hasCoords ? (
               <div className="mt-3 space-y-2">
@@ -305,6 +367,11 @@ function JornadaDetail() {
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Coordenadas</p>
                     <p className="mt-0.5 truncate font-mono text-xs text-foreground">{lat!.toFixed(6)}, {lng!.toFixed(6)}</p>
+                    {gpsAccuracy && (
+                      <p className="mt-1 text-[10px] font-medium text-success">
+                        Precisión GPS: {Math.round(gpsAccuracy)}m
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={clearGPS}
