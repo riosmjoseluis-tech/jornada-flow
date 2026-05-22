@@ -10,6 +10,7 @@ import { jornadasIniciales, type Jornada } from "./jornadas-data";
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 interface Ctx {
   jornadas: Jornada[];
+  reloadJornadas: () => Promise<void>;
   updateNota: (
     id: string,
     nota: string,
@@ -33,31 +34,28 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
   const [jornadas, setJornadas] =
     useState<Jornada[]>(jornadasIniciales);
   const [isAdmin, setIsAdmin] = useState(false);
+  const reloadJornadas = async () => {
+    try {
+      const res = await fetch(`${API_URL}/jornadas`);
+      const data = await res.json();
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`${API_URL}/jornadas`);
-        const data = await res.json();
-
-        if (Array.isArray(data)) {
-          setJornadas(data);
-        }
-
-        setIsAdmin(localStorage.getItem(ADMIN_KEY) === "1");
-      } catch (err) {
-        console.error("Error cargando jornadas:", err);
+      if (Array.isArray(data)) {
+        setJornadas(data);
       }
-    };
-
-    load();
+    } catch (err) {
+      console.error("Error recargando jornadas:", err);
+    }
+  };
+  useEffect(() => {
+    reloadJornadas();
+    setIsAdmin(localStorage.getItem(ADMIN_KEY) === "1");
   }, []);
 
   const setAdmin = (v: boolean) => {
     setIsAdmin(v);
     try {
       localStorage.setItem(ADMIN_KEY, v ? "1" : "0");
-    } catch {}
+    } catch { }
   };
 
   // ✅ CREATE JORNADA (CORRECTO)
@@ -112,11 +110,11 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
         prev.map((j) =>
           j.id === id
             ? {
-                ...j,
-                nota,
-                notaLat: coords?.lat,
-                notaLng: coords?.lng,
-              }
+              ...j,
+              nota,
+              notaLat: coords?.lat,
+              notaLng: coords?.lng,
+            }
             : j
         )
       );
@@ -146,6 +144,7 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
     <JornadasContext.Provider
       value={{
         jornadas,
+        reloadJornadas,
         updateNota,
         updateJornada,
         addJornada,

@@ -14,8 +14,8 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const DIAS_CORTOS = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const DIAS_CORTOS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 function parseFecha(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -23,9 +23,7 @@ function parseFecha(iso: string) {
 }
 
 function Index() {
-  const { jornadas, isAdmin, setAdmin } = useJornadas();
-
-  const grupos = useMemo(() => {
+  const { jornadas, isAdmin, setAdmin } = useJornadas(); const grupos = useMemo(() => {
     const sorted = [...jornadas].sort((a, b) => {
       if (a.fecha === b.fecha) return a.turno === "AM" ? -1 : 1;
       return a.fecha < b.fecha ? 1 : -1;
@@ -67,6 +65,13 @@ function Index() {
                 Historial
               </Link>
               <button
+                onClick={() => window.location.reload()}
+                className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
+                aria-label="Actualizar página"
+              >
+                Actualizar
+              </button>
+              <button
                 onClick={() => {
                   if (isAdmin) { setAdmin(false); return; }
                   const pass = window.prompt("Contraseña de administrador");
@@ -74,11 +79,10 @@ function Index() {
                   if (pass === "admin1234") setAdmin(true);
                   else window.alert("Contraseña incorrecta");
                 }}
-                className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${
-                  isAdmin
-                    ? "border-success/40 bg-success/15 text-success"
-                    : "border-border/60 bg-card text-muted-foreground"
-                }`}
+                className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${isAdmin
+                  ? "border-success/40 bg-success/15 text-success"
+                  : "border-border/60 bg-card text-muted-foreground"
+                  }`}
                 aria-label="Alternar modo admin"
               >
                 <span className={`h-1.5 w-1.5 rounded-full ${isAdmin ? "bg-success" : "bg-muted-foreground/50"}`} />
@@ -149,11 +153,10 @@ function JornadaCard({ jornada }: { jornada: Jornada }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-              jornada.turno === "AM"
-                ? "bg-amber-500/15 text-amber-300"
-                : "bg-indigo-500/15 text-indigo-300"
-            }`}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${jornada.turno === "AM"
+              ? "bg-amber-500/15 text-amber-300"
+              : "bg-indigo-500/15 text-indigo-300"
+              }`}
           >
             {jornada.turno === "AM" ? <Sun className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
             {jornada.turno}
