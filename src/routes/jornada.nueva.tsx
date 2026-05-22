@@ -40,9 +40,9 @@ function NuevaJornada() {
 
   const valid = fecha && grupo.trim().length > 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!valid) return;
-    addJornada({
+    await addJornada({
       fecha, turno, horaInicio, horaFin,
       grupo: grupo.trim(),
       tipoGrupo, grupos: grupos.slice(0, 80), actividad,

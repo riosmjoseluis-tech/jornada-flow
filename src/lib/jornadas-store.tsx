@@ -7,8 +7,7 @@ import {
 } from "react";
 import { jornadasIniciales, type Jornada } from "./jornadas-data";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 interface Ctx {
   jornadas: Jornada[];
   updateNota: (
