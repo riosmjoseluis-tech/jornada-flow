@@ -56,19 +56,17 @@ function NuevaJornada() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-4">
-          <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-card active:scale-95" aria-label="Volver">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Admin</p>
-            <h1 className="truncate text-lg font-semibold">Nueva jornada</h1>
-          </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success text-success-foreground">
-            <CalendarDays className="h-5 w-5" />
-          </div>
+      <header className="border-b border-border/60 bg-background">        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-4">
+        <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-card active:scale-95" aria-label="Volver">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Admin</p>
+          <h1 className="truncate text-lg font-semibold">Nueva jornada</h1>
         </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success text-success-foreground">
+          {/* <CalendarDays className="h-5 w-5" /> */}        </div>
+      </div>
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-5 pt-6">
@@ -122,16 +120,15 @@ function NuevaJornada() {
         </Field>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-md px-5 py-4">
-          <button
-            onClick={handleSave}
-            disabled={!valid}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-success font-semibold text-success-foreground shadow-[0_6px_20px_-6px_oklch(0.65_0.17_155/0.6)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
-          >
-            <Plus className="h-5 w-5" /> Crear jornada
-          </button>
-        </div>
+      <div className="border-t border-border/60 bg-background">        <div className="mx-auto max-w-md px-5 py-4">
+        <button
+          onClick={handleSave}
+          disabled={!valid}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-success font-semibold text-success-foreground shadow-[0_6px_20px_-6px_oklch(0.65_0.17_155/0.6)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+        >
+          <Plus className="h-5 w-5" /> Crear jornada
+        </button>
+      </div>
       </div>
     </div>
   );
