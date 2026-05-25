@@ -13,7 +13,7 @@ function Inicio() {
         style={{
           backgroundImage: "url('/background.jpeg')",
         }}
-      />      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(34,197,94,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.16)_1px,transparent_1px)] [background-size:32px_32px]" />
+      />  <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(34,197,94,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.16)_1px,transparent_1px)] [background-size:32px_32px]" />
       <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-[2px] animate-[laserMove_4s_ease-in-out_infinite] bg-emerald-300 shadow-[0_0_18px_4px_rgba(16,185,129,0.9),0_0_60px_12px_rgba(16,185,129,0.35)]" />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center px-6 text-center">
@@ -34,7 +34,7 @@ function Inicio() {
           to="/registros"
           className="mt-10 flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-400 px-5 py-4 text-base font-bold text-slate-950 shadow-[0_0_35px_rgba(16,185,129,0.45)] transition hover:bg-emerald-300 active:scale-[0.98]"
         >
-          Entrar al Sistema          <ArrowRight className="h-5 w-5" />
+          Entrar a Sistema          <ArrowRight className="h-5 w-5" />
         </Link>
 
         <div className="mt-8 flex flex-col items-center gap-3 text-xs">
