@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegistrosRouteImport } from './routes/registros'
 import { Route as HistorialRouteImport } from './routes/historial'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JornadaNuevaRouteImport } from './routes/jornada.nueva'
 import { Route as JornadaIdRouteImport } from './routes/jornada.$id'
 
+const RegistrosRoute = RegistrosRouteImport.update({
+  id: '/registros',
+  path: '/registros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistorialRoute = HistorialRouteImport.update({
   id: '/historial',
   path: '/historial',
@@ -38,12 +44,14 @@ const JornadaIdRoute = JornadaIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/historial': typeof HistorialRoute
+  '/registros': typeof RegistrosRoute
   '/jornada/$id': typeof JornadaIdRoute
   '/jornada/nueva': typeof JornadaNuevaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/historial': typeof HistorialRoute
+  '/registros': typeof RegistrosRoute
   '/jornada/$id': typeof JornadaIdRoute
   '/jornada/nueva': typeof JornadaNuevaRoute
 }
@@ -51,26 +59,46 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/historial': typeof HistorialRoute
+  '/registros': typeof RegistrosRoute
   '/jornada/$id': typeof JornadaIdRoute
   '/jornada/nueva': typeof JornadaNuevaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/historial' | '/jornada/$id' | '/jornada/nueva'
+  fullPaths:
+    | '/'
+    | '/historial'
+    | '/registros'
+    | '/jornada/$id'
+    | '/jornada/nueva'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/historial' | '/jornada/$id' | '/jornada/nueva'
-  id: '__root__' | '/' | '/historial' | '/jornada/$id' | '/jornada/nueva'
+  to: '/' | '/historial' | '/registros' | '/jornada/$id' | '/jornada/nueva'
+  id:
+    | '__root__'
+    | '/'
+    | '/historial'
+    | '/registros'
+    | '/jornada/$id'
+    | '/jornada/nueva'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HistorialRoute: typeof HistorialRoute
+  RegistrosRoute: typeof RegistrosRoute
   JornadaIdRoute: typeof JornadaIdRoute
   JornadaNuevaRoute: typeof JornadaNuevaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/registros': {
+      id: '/registros'
+      path: '/registros'
+      fullPath: '/registros'
+      preLoaderRoute: typeof RegistrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/historial': {
       id: '/historial'
       path: '/historial'
@@ -105,19 +133,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HistorialRoute: HistorialRoute,
+  RegistrosRoute: RegistrosRoute,
   JornadaIdRoute: JornadaIdRoute,
   JornadaNuevaRoute: JornadaNuevaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
