@@ -21,7 +21,7 @@ interface Ctx {
     patch: Partial<Omit<Jornada, "id">>
   ) => void;
   addJornada: (j: Omit<Jornada, "id">) => Promise<void>;
-  deleteJornada: (id: string) => void;
+  deleteJornada: (id: string) => Promise<void>;
   isAdmin: boolean;
   setAdmin: (v: boolean) => void;
 }
@@ -134,10 +134,26 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const deleteJornada = (id: string) => {
-    setJornadas((prev) =>
-      prev.filter((j) => j.id !== id)
-    );
+  const deleteJornada = async (id: string) => {
+    try {
+      const res = await fetch(
+        `${API_URL}/jornadas/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Error eliminando jornada");
+      }
+
+      setJornadas((prev) =>
+        prev.filter((j) => j.id !== id)
+      );
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo eliminar la jornada");
+    }
   };
 
   return (
