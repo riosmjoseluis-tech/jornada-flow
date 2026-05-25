@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarDays, Check, Clock, Sun, Moon, Users, FileText, MapPin, UserCog, Map, Activity, Layers, ShieldCheck, Pencil, Trash2, MapPinned, X, Loader2, ExternalLink } from "lucide-react";
 import { useJornadas } from "@/lib/jornadas-store";
@@ -13,10 +13,12 @@ const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "
 function JornadaDetail() {
   const { id } = Route.useParams();
   const { jornadas, updateNota, updateJornada, deleteJornada, isAdmin } = useJornadas();
-  const navigate = useNavigate();
   const jornada = jornadas.find((j) => String(j.id) === String(id));
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
+
+  const [eventos, setEventos] = useState([])
+  const [loadingEventos, setLoadingEventos] = useState(true)
   const [editAdmin, setEditAdmin] = useState(false);
   const [lat, setLat] = useState<number | undefined>(jornada?.notaLat);
   const [lng, setLng] = useState<number | undefined>(jornada?.notaLng);
@@ -43,6 +45,18 @@ function JornadaDetail() {
     setLat(jornada.notaLat);
     setLng(jornada.notaLng);
     setGpsError(null);
+    setLoadingEventos(true);
+
+    fetch(`/api/jornadas/${id}/eventos`)
+      .then((r) => r.json())
+      .then((data) => {
+        setEventos(data);
+        setSaved(true);
+      })
+      .catch(console.error)
+      .finally(() => {
+        setLoadingEventos(false);
+      });
   }, [jornada]);
 
   if (!jornada) {
@@ -62,9 +76,26 @@ function JornadaDetail() {
     nota !== jornada.nota || lat !== jornada.notaLat || lng !== jornada.notaLng;
   const hasCoords = typeof lat === "number" && typeof lng === "number";
 
-  const handleSave = () => {
-    updateNota(String(jornada.id), nota, hasCoords ? { lat, lng } : null); setSaved(true);
-    setTimeout(() => navigate({ to: "/" }), 600);
+  const handleSave = async () => {
+    try {
+      await updateNota(
+        String(jornada.id),
+        nota,
+        hasCoords ? { lat, lng } : null
+      );
+
+      const response = await fetch(
+        `/api/jornadas/${id}/eventos`
+      );
+
+      const data = await response.json();
+
+      setEventos(data);
+
+    } catch (error) {
+      console.error(error);
+      alert("Error guardando nota");
+    }
   };
 
   const captureGPS = () => {
@@ -314,7 +345,8 @@ function JornadaDetail() {
             <button
               onClick={() => {
                 if (confirm("¿Eliminar esta jornada? Esta acción no se puede deshacer.")) {
-                  deleteJornada(String(jornada.id)); navigate({ to: "/" });
+                  deleteJornada(String(jornada.id));
+                  window.location.href = "/";
                 }
               }}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 py-2.5 text-sm font-semibold text-destructive transition active:scale-[0.98]"
@@ -408,6 +440,55 @@ function JornadaDetail() {
               <p className="mt-2 text-[11px] font-medium text-destructive">{gpsError}</p>
             )}
           </div>
+        </section>
+        <section className="mt-6">
+          <div className="mb-3 flex items-center gap-2 px-1">
+            <Clock className="h-4 w-4 text-success" />
+            <h2 className="text-sm font-semibold">
+              Historial de actividad
+            </h2>
+          </div>
+
+          {loadingEventos ? (
+            <div className="rounded-2xl border border-border/60 bg-card p-4 text-sm text-muted-foreground">
+              Cargando historial...
+            </div>
+          ) : eventos.length === 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-card p-4 text-sm text-muted-foreground">
+              Aún no hay registros
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {eventos.map((evento: any) => (
+                <div
+                  key={evento.id}
+                  className="rounded-2xl border border-border/60 bg-card p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-success">
+                      {new Date(evento.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <p className="mt-2 whitespace-pre-wrap text-sm">
+                    {evento.nota || "Sin nota"}
+                  </p>
+
+                  {evento.latitud && evento.longitud && (
+                    <div className="mt-3 text-[11px] text-muted-foreground">
+                      GPS: {evento.latitud}, {evento.longitud}
+                      {evento.precisionGps && (
+                        <span>
+                          {" "}
+                          · Precisión {Math.round(evento.precisionGps)}m
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
