@@ -14,8 +14,7 @@ function JornadaDetail() {
   const { id } = Route.useParams();
   const { jornadas, updateNota, updateJornada, deleteJornada, isAdmin } = useJornadas();
   const navigate = useNavigate();
-  const jornada = jornadas.find((j) => j.id === id);
-
+  const jornada = jornadas.find((j) => String(j.id) === String(id));
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
   const [editAdmin, setEditAdmin] = useState(false);
@@ -64,8 +63,7 @@ function JornadaDetail() {
   const hasCoords = typeof lat === "number" && typeof lng === "number";
 
   const handleSave = () => {
-    updateNota(jornada.id, nota, hasCoords ? { lat, lng } : null);
-    setSaved(true);
+    updateNota(String(jornada.id), nota, hasCoords ? { lat, lng } : null); setSaved(true);
     setTimeout(() => navigate({ to: "/" }), 600);
   };
 
@@ -316,8 +314,7 @@ function JornadaDetail() {
             <button
               onClick={() => {
                 if (confirm("¿Eliminar esta jornada? Esta acción no se puede deshacer.")) {
-                  deleteJornada(jornada.id);
-                  navigate({ to: "/" });
+                  deleteJornada(String(jornada.id)); navigate({ to: "/" });
                 }
               }}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 py-2.5 text-sm font-semibold text-destructive transition active:scale-[0.98]"
