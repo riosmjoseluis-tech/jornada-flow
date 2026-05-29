@@ -12,7 +12,7 @@ const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "
 
 function JornadaDetail() {
   const { id } = Route.useParams();
-  const { jornadas, updateNota, updateJornada, deleteJornada, isAdmin } = useJornadas();
+  const { jornadas, updateNota, updateJornada, deleteJornada } = useJornadas();
   const jornada = jornadas.find((j) => String(j.id) === String(id));
   const [nota, setNota] = useState(jornada?.nota ?? "");
   const [saved, setSaved] = useState(false);
@@ -51,7 +51,6 @@ function JornadaDetail() {
       .then((r) => r.json())
       .then((data) => {
         setEventos(data);
-        setSaved(true);
       })
       .catch(console.error)
       .finally(() => {
@@ -91,6 +90,7 @@ function JornadaDetail() {
       const data = await response.json();
 
       setEventos(data);
+      setSaved(true);
 
     } catch (error) {
       console.error(error);
@@ -214,7 +214,7 @@ function JornadaDetail() {
             </p>
             <h1 className="truncate text-lg font-semibold">{jornada.grupo}</h1>
           </div>
-          {isAdmin && !editAdmin && (
+          {!editAdmin && (
             <button
               onClick={() => setEditAdmin(true)}
               className="flex h-9 items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-3 text-xs font-semibold text-success transition active:scale-95"
@@ -256,11 +256,11 @@ function JornadaDetail() {
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-sm font-semibold">Información de la jornada</h2>
             <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
-              {isAdmin ? "Admin" : "Solo lectura"}
+              Editable
             </span>
           </div>
 
-          {isAdmin && editAdmin ? (
+          {editAdmin ? (
             <div className="space-y-3 rounded-2xl border border-border/60 bg-card p-4">
               <Field label="Tipo de grupo" icon={<Layers className="h-3.5 w-3.5" />}>
                 <select
@@ -341,12 +341,12 @@ function JornadaDetail() {
             </div>
           )}
 
-          {isAdmin && !editAdmin && (
+          {!editAdmin && (
             <button
               onClick={() => {
                 if (confirm("¿Eliminar esta jornada? Esta acción no se puede deshacer.")) {
                   deleteJornada(String(jornada.id));
-                  window.location.href = "/";
+                  window.location.href = "/registros";
                 }
               }}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 py-2.5 text-sm font-semibold text-destructive transition active:scale-[0.98]"

@@ -23,7 +23,9 @@ function parseFecha(iso: string) {
 }
 
 function Index() {
-  const { jornadas, isAdmin, setAdmin } = useJornadas(); const grupos = useMemo(() => {
+  const { jornadas } = useJornadas();
+
+  const grupos = useMemo(() => {
     const sorted = [...jornadas].sort((a, b) => {
       if (a.fecha === b.fecha) return a.turno === "AM" ? -1 : 1;
       return a.fecha < b.fecha ? 1 : -1;
@@ -48,17 +50,17 @@ function Index() {
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-md px-5 pb-4 pt-6">
-          <div className="flex items-start justify-between gap-3">
+          <div className="space-y-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 Congregacion Villa del Lago
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Jornadas Predicacion</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Link
                 to="/historial"
-                className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
                 aria-label="Ver historial"
               >
                 <BarChart3 className="h-3.5 w-3.5" />
@@ -66,7 +68,7 @@ function Index() {
               </Link>
               <button
                 onClick={() => window.location.reload()}
-                className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-border/60 bg-card px-3 text-[11px] font-semibold text-muted-foreground transition active:scale-95 hover:text-foreground"
                 aria-label="Actualizar página"
               >
                 Actualizar
@@ -75,28 +77,11 @@ function Index() {
                 href="/api/export/excel"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 text-[11px] font-semibold text-emerald-300 transition active:scale-95 hover:text-emerald-200"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 text-[11px] font-semibold text-emerald-300 transition active:scale-95 hover:text-emerald-200"
               >
                 <FileSpreadsheet className="h-3.5 w-3.5" />
                 Excel
               </a>
-              <button
-                onClick={() => {
-                  if (isAdmin) { setAdmin(false); return; }
-                  const pass = window.prompt("Contraseña de administrador");
-                  if (pass === null) return;
-                  if (pass === "admin1234") setAdmin(true);
-                  else window.alert("Contraseña incorrecta");
-                }}
-                className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${isAdmin
-                  ? "border-success/40 bg-success/15 text-success"
-                  : "border-border/60 bg-card text-muted-foreground"
-                  }`}
-                aria-label="Alternar modo admin"
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${isAdmin ? "bg-success" : "bg-muted-foreground/50"}`} />
-                {isAdmin ? "Admin" : "Usuario"}
-              </button>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
@@ -123,16 +108,15 @@ function Index() {
         ))}
       </main>
 
-      {isAdmin && (
-        <Link
-          to="/jornada/nueva"
-          className="fixed bottom-6 left-1/2 z-20 flex h-14 -translate-x-1/2 items-center gap-2 rounded-full bg-success px-6 font-semibold text-success-foreground shadow-[0_10px_30px_-8px_oklch(0.65_0.17_155/0.7)] transition active:scale-95"
-          aria-label="Nueva jornada"
-        >
-          <Plus className="h-5 w-5" />
-          Nueva jornada
-        </Link>
-      )}
+      <Link
+        to="/jornada/nueva"
+        className="fixed bottom-6 left-1/2 z-20 flex h-14 -translate-x-1/2 items-center gap-2 rounded-full bg-success px-6 font-semibold text-success-foreground shadow-[0_10px_30px_-8px_oklch(0.65_0.17_155/0.7)] transition active:scale-95"
+        aria-label="Nueva jornada"
+      >
+        <Plus className="h-5 w-5" />
+        Nueva jornada
+      </Link>
+
     </div>
   );
 }

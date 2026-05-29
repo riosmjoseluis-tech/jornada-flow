@@ -23,17 +23,16 @@ interface Ctx {
   addJornada: (j: Omit<Jornada, "id">) => Promise<void>;
   deleteJornada: (id: string) => Promise<void>;
   isAdmin: boolean;
-  setAdmin: (v: boolean) => void;
+  setAdmin: () => void;
 }
 
 const JornadasContext = createContext<Ctx | null>(null);
 
-const ADMIN_KEY = "jornadas-admin";
 
 export function JornadasProvider({ children }: { children: ReactNode }) {
   const [jornadas, setJornadas] =
     useState<Jornada[]>(jornadasIniciales);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = true;
   const reloadJornadas = async () => {
     try {
       const res = await fetch(`${API_URL}/jornadas`);
@@ -48,15 +47,10 @@ export function JornadasProvider({ children }: { children: ReactNode }) {
   };
   useEffect(() => {
     reloadJornadas();
-    setIsAdmin(localStorage.getItem(ADMIN_KEY) === "1");
+
   }, []);
 
-  const setAdmin = (v: boolean) => {
-    setIsAdmin(v);
-    try {
-      localStorage.setItem(ADMIN_KEY, v ? "1" : "0");
-    } catch { }
-  };
+  const setAdmin = () => {};
 
   // ✅ CREATE JORNADA (CORRECTO)
   const addJornada = async (j: Omit<Jornada, "id">) => {
