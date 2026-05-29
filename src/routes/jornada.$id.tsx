@@ -198,7 +198,7 @@ function JornadaDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+   <div className="min-h-screen overflow-x-hidden bg-background pb-32">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-4">
           <Link
@@ -225,7 +225,7 @@ function JornadaDetail() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-md px-5 pt-6">
+      <main className="mx-auto w-full max-w-md overflow-x-hidden px-5 pt-6">
         {/* Hero */}
         <div className="rounded-3xl border border-border/60 bg-gradient-to-br from-card to-card/40 p-5">
           <div className="flex items-center gap-4">
@@ -395,7 +395,7 @@ function JornadaDetail() {
                 <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-background/50 p-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Coordenadas</p>
-                    <p className="mt-0.5 truncate font-mono text-xs text-foreground">{lat!.toFixed(6)}, {lng!.toFixed(6)}</p>
+                    <p className="mt-0.5 break-all font-mono text-xs text-foreground">{lat!.toFixed(6)}, {lng!.toFixed(6)}</p>
                     {gpsAccuracy && (
                       <p className="mt-1 text-[10px] font-medium text-success">
                         Precisión GPS: {Math.round(gpsAccuracy)}m
@@ -462,7 +462,7 @@ function JornadaDetail() {
               {eventos.map((evento: any) => (
                 <div
                   key={evento.id}
-                  className="rounded-2xl border border-border/60 bg-card p-4"
+                  className="min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card p-4"
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-success">
@@ -475,7 +475,7 @@ function JornadaDetail() {
                   </p>
 
                   {evento.latitud && evento.longitud && (
-                    <div className="mt-3 text-[11px] text-muted-foreground">
+                    <div className="mt-3 break-all text-[11px] text-muted-foreground">
                       GPS: {evento.latitud}, {evento.longitud}
                       {evento.precisionGps && (
                         <span>
